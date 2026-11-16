@@ -1249,8 +1249,10 @@ let rest = null
 let storage = null
 let pendingRefresh = false
 
-// Providers the user has hidden — plugin-scoped, shared by page and chip.
+// Cards the user has hidden. Keep the storage key for existing preferences.
 const HIDDEN_KEY = 'hidden-providers-v1'
+const LLAMA_CARD_ID = 'panel:llama-server'
+const LLAMA_CARD_LABEL = 'Llama Server'
 const $hidden = atom([])
 
 // Selected profile — plugin-scoped, shared by page and chip. Empty means
@@ -1284,12 +1286,12 @@ function persistHidden(ids) {
   }
 }
 
-function hideProvider(id) {
+function hideCard(id) {
   const current = $hidden.get()
   if (!current.includes(id)) persistHidden([...current, id])
 }
 
-function unhideProvider(id) {
+function unhideCard(id) {
   persistHidden($hidden.get().filter(value => value !== id))
 }
 
@@ -1463,8 +1465,26 @@ function QuotaBar({ window }) {
   })
 }
 
+function CardVisibilityButton({ id, label, isHidden, className }) {
+  const t = usePluginI18n(ID)
+  const action = t(isHidden ? 'hidden.unhide' : 'hidden.hide', label)
+  return jsx('button', {
+    type: 'button',
+    title: action,
+    'aria-label': action,
+    className: cn('shrink-0 px-1 text-(--ui-text-quaternary) hover:text-(--ui-text-secondary)', className),
+    onClick: () => {
+      haptic('tap')
+      if (isHidden) unhideCard(id)
+      else hideCard(id)
+    },
+    children: jsx(Codicon, { name: isHidden ? 'eye' : 'close' })
+  })
+}
+
 function ProviderCard({ provider, isHidden }) {
   const t = usePluginI18n(ID)
+  const label = providerLabel(provider, t)
   const status = statusOf(provider, t)
   const windows = provider.quota?.windows || []
   const details = provider.quota?.details || []
@@ -1478,7 +1498,7 @@ function ProviderCard({ provider, isHidden }) {
       jsxs('div', {
         className: 'flex items-center gap-2',
         children: [
-          jsx('span', { className: 'text-sm font-medium', children: providerLabel(provider, t) }),
+          jsx('span', { className: 'text-sm font-medium', children: label }),
           provider.quota?.plan
             ? jsx(Badge, { variant: 'muted', size: 'xs', children: planLabel(provider.quota.plan, t) })
             : null,
@@ -1487,18 +1507,7 @@ function ProviderCard({ provider, isHidden }) {
             ? jsx('span', { className: 'text-[0.6875rem] text-(--ui-text-quaternary)', children: t('status.recent') })
             : null,
           jsx('span', { className: 'flex-1' }),
-          jsx('button', {
-            type: 'button',
-            title: isHidden ? t('hidden.showProvider') : t('hidden.hideProvider'),
-            'aria-label': isHidden ? t('hidden.unhide', providerLabel(provider, t)) : t('hidden.hide', providerLabel(provider, t)),
-            className: 'shrink-0 px-1 text-(--ui-text-quaternary) hover:text-(--ui-text-secondary)',
-            onClick: () => {
-              haptic('tap')
-              if (isHidden) unhideProvider(provider.id)
-              else hideProvider(provider.id)
-            },
-            children: jsx(Codicon, { name: isHidden ? 'eye' : 'close' })
-          })
+          jsx(CardVisibilityButton, { id: provider.id, label, isHidden })
         ]
       }),
       windows.map((window, index) => jsx(QuotaBar, { window }, index)),
@@ -1613,7 +1622,7 @@ function PageHeader({ profiles, profile, setProfile, chipProviders, chipProvider
   })
 }
 
-function LlamaControl() {
+function LlamaControl({ isHidden }) {
   const t = usePluginI18n(ID)
   const [pending, setPending] = useState(false)
   const [actionError, setActionError] = useState(null)
@@ -1645,14 +1654,17 @@ function LlamaControl() {
   }
 
   return jsxs('section', {
-    className: 'flex flex-wrap items-center justify-between gap-3 rounded-lg border border-(--ui-border) p-3',
+    className: cn(
+      'relative flex flex-wrap items-center justify-between gap-3 rounded-lg border border-(--ui-border) p-3 pr-9',
+      isHidden && 'opacity-60'
+    ),
     children: [
       jsxs('div', {
         className: 'flex min-w-0 flex-col gap-1',
         children: [
           jsxs('div', {
             className: 'flex items-center gap-2 text-sm font-medium',
-            children: [jsx(Codicon, { name: 'server' }), 'Llama Server']
+            children: [jsx(Codicon, { name: 'server' }), LLAMA_CARD_LABEL]
           }),
           jsx('div', {
             role: 'status', className: 'text-xs text-(--ui-text-tertiary)',
@@ -1670,7 +1682,10 @@ function LlamaControl() {
         onClick: toggle,
         disabled: pending || Boolean(error),
         children: t(`llama.${label}`)
-      }) : null
+      }) : null,
+      jsx(CardVisibilityButton, {
+        id: LLAMA_CARD_ID, label: LLAMA_CARD_LABEL, isHidden, className: 'absolute right-2 top-3'
+      })
     ]
   })
 }
@@ -1685,7 +1700,8 @@ function UsagePage() {
   const chipProvider = useValue($chipProvider)
   const profiles = data?.profiles || []
   const shownProfile = selected || data?.profile || ''
-  const llamaControl = jsx(LlamaControl, {})
+  const llamaHidden = hiddenIds.includes(LLAMA_CARD_ID)
+  const llamaControl = !llamaHidden || showHidden ? jsx(LlamaControl, { isHidden: llamaHidden }) : null
   const header = jsx(PageHeader, {
     profiles,
     profile: shownProfile,

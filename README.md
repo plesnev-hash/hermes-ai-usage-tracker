@@ -97,11 +97,12 @@ Honest limits:
 - Credential lookup uses the profile's own home first and falls back to the server
   process environment (exactly how Hermes itself resolves them for that profile).
 
-## Hiding providers
+## Hiding cards
 
 Each card has a **✕** control. Hidden providers leave the page and are excluded from the
-status-bar chip. The header's **`Hidden N`** toggle reveals them dimmed, with **Unhide all**
-to reset. The list persists through `ctx.storage`
+status-bar chip. Hiding the Llama Server card affects its visibility. The header's **`Hidden N`**
+toggle reveals hidden cards. Use the eye on a card or **Unhide all** to restore it.
+The list persists through `ctx.storage`
 (`hermes.plugin.ai-usage-tracker.hidden-providers-v1`).
 
 ## Llama Server on Windows
