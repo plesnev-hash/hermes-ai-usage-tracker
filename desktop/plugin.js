@@ -2,12 +2,10 @@
  * AI Usage Tracker — live subscription quota for every AI provider Hermes can
  * route to, per profile, in the Hermes desktop.
  *
- * Scope (deliberately narrow): subscription quota windows only — provider,
- * plan, window, % remaining, reset countdown. No token counting, no cost
- * estimates, no time-window filters.
+ * Subscription quota windows and controls for a local llama.cpp server.
  *
  * Backend: ~/.hermes/plugins/ai-usage-tracker/dashboard/plugin_api.py
- * Read-only. No secrets ever reach the UI.
+ * Quota reads and local server controls share the plugin API.
  */
 import {
   Badge,
@@ -52,6 +50,21 @@ function plural(number, one, few, many) {
 }
 
 const EN = {
+  llama: {
+    start: 'Start',
+    attach: 'Manage running server',
+    stop: 'Stop',
+    select: 'Choose the model in a Hermes chat',
+    stopped: 'Stopped',
+    starting: 'Starting…',
+    running: 'Ready',
+    stopping: 'Stopping…',
+    external: 'Already running',
+    busy: 'Port in use',
+    unconfigured: 'Add llama.json to configure the server.',
+    invalid: 'Check the settings in llama.json.',
+    failed: 'Server failed. Check the llama-server log.'
+  },
   app: { title: 'AI usage' },
   common: { left: 'left' },
   status: { live: 'live quota', none: 'no quota', unavailable: 'unavailable', recent: 'used recently', low: 'low', watch: 'watch' },
@@ -157,6 +170,21 @@ const EN = {
 
 const RU = {
   ...EN,
+  llama: {
+    start: 'Включить',
+    attach: 'Подключить управление',
+    stop: 'Выключить',
+    select: 'Выбери модель в чате Hermes',
+    stopped: 'Выключен',
+    starting: 'Запускается…',
+    running: 'Готов к работе',
+    stopping: 'Останавливается…',
+    external: 'Уже запущен',
+    busy: 'Порт занят',
+    unconfigured: 'Добавь llama.json для настройки сервера.',
+    invalid: 'Проверь настройки в llama.json.',
+    failed: 'Сбой сервера. Проверь журнал llama-server.'
+  },
   app: { title: 'Лимиты ИИ' },
   common: { left: 'осталось' },
   status: { live: 'лимиты онлайн', none: 'нет лимитов', unavailable: 'недоступно', recent: 'недавно использовался', low: 'мало', watch: 'контроль' },
@@ -272,6 +300,21 @@ function withLocale(base, overrides) {
 }
 
 const DE = withLocale(EN, {
+  llama: {
+    start: 'Starten',
+    attach: 'Laufenden Server verwalten',
+    stop: 'Stoppen',
+    select: 'Wähle das Modell in einem Hermes-Chat',
+    stopped: 'Gestoppt',
+    starting: 'Wird gestartet…',
+    running: 'Bereit',
+    stopping: 'Wird gestoppt…',
+    external: 'Läuft bereits',
+    busy: 'Port belegt',
+    unconfigured: 'Konfiguriere den Server in llama.json.',
+    invalid: 'Prüfe die Einstellungen in llama.json.',
+    failed: 'Serverfehler. Prüfe das llama-server-Protokoll.'
+  },
   app: { title: 'KI-Nutzung' },
   common: { left: 'übrig' },
   status: { live: 'Live-Kontingent', none: 'kein Kontingent', unavailable: 'nicht verfügbar', recent: 'kürzlich verwendet', low: 'wenig', watch: 'beobachten' },
@@ -376,6 +419,21 @@ const DE = withLocale(EN, {
 })
 
 const ES = withLocale(EN, {
+  llama: {
+    start: 'Iniciar',
+    attach: 'Gestionar el servidor activo',
+    stop: 'Detener',
+    select: 'Elige el modelo en un chat de Hermes',
+    stopped: 'Detenido',
+    starting: 'Iniciando…',
+    running: 'Listo',
+    stopping: 'Deteniendo…',
+    external: 'Ya está en ejecución',
+    busy: 'Puerto ocupado',
+    unconfigured: 'Añade llama.json para configurar el servidor.',
+    invalid: 'Revisa los ajustes en llama.json.',
+    failed: 'Error del servidor. Consulta el registro de llama-server.'
+  },
   app: { title: 'Uso de IA' },
   common: { left: 'restante' },
   status: { live: 'cuota en vivo', none: 'sin cuota', unavailable: 'no disponible', recent: 'usado recientemente', low: 'bajo', watch: 'vigilar' },
@@ -480,6 +538,21 @@ const ES = withLocale(EN, {
 })
 
 const FR = withLocale(EN, {
+  llama: {
+    start: 'Démarrer',
+    attach: 'Gérer le serveur actif',
+    stop: 'Arrêter',
+    select: 'Choisis le modèle dans une conversation Hermes',
+    stopped: 'Arrêté',
+    starting: 'Démarrage…',
+    running: 'Prêt',
+    stopping: 'Arrêt en cours…',
+    external: 'Déjà en cours',
+    busy: 'Port occupé',
+    unconfigured: 'Ajoutez llama.json pour configurer le serveur.',
+    invalid: 'Vérifiez les paramètres dans llama.json.',
+    failed: 'Échec du serveur. Consultez le journal de llama-server.'
+  },
   app: { title: 'Utilisation de l’IA' },
   common: { left: 'restant' },
   status: { live: 'quota en direct', none: 'aucun quota', unavailable: 'indisponible', recent: 'utilisé récemment', low: 'faible', watch: 'à surveiller' },
@@ -584,6 +657,21 @@ const FR = withLocale(EN, {
 })
 
 const JA = withLocale(EN, {
+  llama: {
+    start: '起動',
+    attach: '稼働中のサーバーを管理',
+    stop: '停止',
+    select: 'Hermes チャットでモデルを選択',
+    stopped: '停止中',
+    starting: '起動しています…',
+    running: '準備完了',
+    stopping: '停止しています…',
+    external: '起動済み',
+    busy: 'ポート使用中',
+    unconfigured: 'llama.json を追加してサーバーを設定します。',
+    invalid: 'llama.json の設定を確認してください。',
+    failed: 'サーバーに問題が発生しました。llama-server のログを確認してください。'
+  },
   app: { title: 'AI 使用量' },
   common: { left: '残り' },
   status: { live: 'リアルタイム枠', none: '枠なし', unavailable: '利用不可', recent: '最近使用', low: '残りわずか', watch: '注意' },
@@ -688,6 +776,21 @@ const JA = withLocale(EN, {
 })
 
 const ZH = withLocale(EN, {
+  llama: {
+    start: '启动',
+    attach: '接管运行中的服务器',
+    stop: '停止',
+    select: '在 Hermes 对话中选择模型',
+    stopped: '已停止',
+    starting: '正在启动…',
+    running: '就绪',
+    stopping: '正在停止…',
+    external: '已在运行',
+    busy: '端口已被占用',
+    unconfigured: '添加 llama.json 以配置服务器。',
+    invalid: '请检查 llama.json 中的设置。',
+    failed: '服务器启动失败。请查看 llama-server 日志。'
+  },
   app: { title: 'AI 用量' },
   common: { left: '剩余' },
   status: { live: '实时配额', none: '无配额', unavailable: '不可用', recent: '最近使用', low: '不足', watch: '注意' },
@@ -792,6 +895,21 @@ const ZH = withLocale(EN, {
 })
 
 const ZH_HANT = withLocale(EN, {
+  llama: {
+    start: '啟動',
+    attach: '接管執行中的伺服器',
+    stop: '停止',
+    select: '在 Hermes 對話中選擇模型',
+    stopped: '已停止',
+    starting: '正在啟動…',
+    running: '就緒',
+    stopping: '正在停止…',
+    external: '已在執行',
+    busy: '連接埠已被占用',
+    unconfigured: '新增 llama.json 以設定伺服器。',
+    invalid: '請檢查 llama.json 中的設定。',
+    failed: '伺服器啟動失敗。請查看 llama-server 記錄。'
+  },
   app: { title: 'AI 用量' },
   common: { left: '剩餘' },
   status: { live: '即時配額', none: '無配額', unavailable: '無法使用', recent: '最近使用', low: '不足', watch: '注意' },
@@ -896,6 +1014,21 @@ const ZH_HANT = withLocale(EN, {
 })
 
 const AR = withLocale(EN, {
+  llama: {
+    start: 'تشغيل',
+    attach: 'إدارة الخادم المشغّل',
+    stop: 'إيقاف',
+    select: 'اختر النموذج في محادثة Hermes',
+    stopped: 'متوقف',
+    starting: 'جارٍ التشغيل…',
+    running: 'جاهز',
+    stopping: 'جارٍ الإيقاف…',
+    external: 'يعمل بالفعل',
+    busy: 'المنفذ مستخدم',
+    unconfigured: 'أضف llama.json لإعداد الخادم.',
+    invalid: 'تحقّق من إعدادات llama.json.',
+    failed: 'تعطّل الخادم. راجع سجل llama-server.'
+  },
   app: { title: 'استخدام الذكاء الاصطناعي' },
   common: { left: 'متبقٍ' },
   status: { live: 'حصة مباشرة', none: 'لا توجد حصة', unavailable: 'غير متاح', recent: 'مُستخدم مؤخرًا', low: 'منخفض', watch: 'مراقبة' },
@@ -1480,6 +1613,64 @@ function PageHeader({ profiles, profile, setProfile, chipProviders, chipProvider
   })
 }
 
+function LlamaControl() {
+  const t = usePluginI18n(ID)
+  const [pending, setPending] = useState(false)
+  const [actionError, setActionError] = useState(null)
+  const { data, error, refetch } = useQuery({
+    queryKey: [ID, 'llama'],
+    queryFn: () => rest('/llama'),
+    refetchInterval: 2500,
+    retry: false
+  })
+
+  const state = data?.state
+  if (state === 'unsupported' || (!state && !error)) return null
+  const running = state === 'running' || state === 'starting'
+  const available = running || ['stopped', 'failed', 'external'].includes(state)
+  const action = running ? 'stop' : 'start'
+  const label = state === 'external' ? 'attach' : action
+
+  async function toggle() {
+    setPending(true)
+    setActionError(null)
+    try {
+      await rest(`/llama/${action}`, { method: 'POST' })
+      await refetch()
+    } catch (failure) {
+      setActionError(failure)
+    } finally {
+      setPending(false)
+    }
+  }
+
+  return jsxs('section', {
+    className: 'flex flex-wrap items-center justify-between gap-3 rounded-lg border border-(--ui-border) p-3',
+    children: [
+      jsxs('div', {
+        className: 'flex min-w-0 flex-col gap-1',
+        children: [
+          jsxs('div', {
+            className: 'flex items-center gap-2 text-sm font-medium',
+            children: [jsx(Codicon, { name: 'server' }), 'Llama Server']
+          }),
+          jsx('div', {
+            role: 'status', className: 'text-xs text-(--ui-text-tertiary)',
+            children: actionError || error ? errorLabel(actionError || error, t) : t(`llama.${state}`)
+          }),
+          state === 'running' && data.model ? jsx('div', {
+            className: 'text-xs text-(--ui-text-secondary)',
+            children: `${t('llama.select')} · ${data.model}${data.provider ? ` (${data.provider})` : ''}`
+          }) : null
+        ]
+      }),
+      available ? jsx(Button, {
+        variant: 'secondary', onClick: toggle, disabled: pending || Boolean(error), children: t(`llama.${label}`)
+      }) : null
+    ]
+  })
+}
+
 function UsagePage() {
   const t = usePluginI18n(ID)
   const [showHidden, setShowHidden] = useState(false)
@@ -1490,6 +1681,7 @@ function UsagePage() {
   const chipProvider = useValue($chipProvider)
   const profiles = data?.profiles || []
   const shownProfile = selected || data?.profile || ''
+  const llamaControl = jsx(LlamaControl, {})
   const header = jsx(PageHeader, {
     profiles,
     profile: shownProfile,
@@ -1511,6 +1703,7 @@ function UsagePage() {
       className: 'flex flex-col gap-3 p-4',
       children: [
         header,
+        llamaControl,
         jsx(ErrorState, {
           title: t('errors.loadTitle'),
           description: t('errors.loadDescription', errorLabel(error, t)),
@@ -1524,6 +1717,7 @@ function UsagePage() {
       className: 'flex flex-col gap-3 p-4',
       children: [
         header,
+        llamaControl,
         jsx(Skeleton, { className: 'h-6 w-48' }),
         jsx(Skeleton, { className: 'h-24 w-full' }),
         jsx(Skeleton, { className: 'h-24 w-full' })
@@ -1542,6 +1736,7 @@ function UsagePage() {
       className: 'flex flex-col gap-3 p-4',
       children: [
         header,
+        llamaControl,
         error && data
           ? jsx('div', {
               className: 'text-[0.6875rem] text-(--ui-text-quaternary)',

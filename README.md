@@ -4,8 +4,8 @@ Live **subscription quota** for every AI provider Hermes can route to, inside th
 desktop: a page (sidebar → *AI usage*), a status-bar chip showing the worst remaining
 window, and a per-profile picker.
 
-Scope is deliberately narrow: **quota windows only** — provider, plan, window name,
-% remaining, reset countdown. No token counting, no cost estimates, no period filters.
+The quotas show the provider, plan, window, remaining percentage and reset time.
+On Windows the same page can start or stop a configured local llama.cpp server.
 
 ## Languages
 
@@ -104,6 +104,35 @@ status-bar chip. The header's **`Hidden N`** toggle reveals them dimmed, with **
 to reset. The list persists through `ctx.storage`
 (`hermes.plugin.ai-usage-tracker.hidden-providers-v1`).
 
+## Llama Server on Windows
+
+The **Llama Server** card on the AI usage page starts and stops a local `llama-server.exe`.
+It can also take control of a process that already listens on the configured loopback
+port and uses the same executable and arguments. When the server is ready, select its
+configured model from the Hermes chat model picker.
+
+The Windows notification-area icon opens a menu with **Stop llama-server and exit**.
+The tray process stays open when Hermes Desktop or its gateway closes. The icon may be
+in the taskbar's hidden icons menu.
+
+Create `ai-usage-tracker/llama.json` inside your default Hermes home. Edit it while
+the server is stopped. For example:
+
+```json
+{
+  "executable": "C:/AI/llamacpp/llama-server.exe",
+  "arguments": ["-m", "C:/AI/models/local.gguf", "--alias", "local-model"],
+  "port": 8080,
+  "provider": "local-llama",
+  "model": "local-model",
+  "language": "en"
+}
+```
+
+Configure the matching OpenAI-compatible chat endpoint in Hermes at `http://127.0.0.1:8080/v1`.
+The tray supplies the host and port arguments. Set `language` to `ru` for the Russian tray menu.
+Server and tray logs are saved beside `llama.json` in `llama-server.log` and `llama-tray.log`.
+
 ## Layout (one package, both SDKs)
 
 ```
@@ -141,7 +170,8 @@ canonical plugin id.
 
 ## Privacy
 
-- Read-only. Nothing is written except the plugin's own cache and the two UI prefs.
+- The quota panel reads usage data and stores display preferences. The Llama Server
+  controls launch the configured local process and keep its logs in the plugin data folder.
 - Credentials are resolved in-process and **never serialized**; the wire carries
   `configured: true/false` and a source label only.
 - Outbound calls go to provider quota endpoints. Cursor also uses `api.cursor.com/v1/me`

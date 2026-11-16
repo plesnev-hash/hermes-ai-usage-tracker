@@ -17,6 +17,7 @@ own. Secrets are resolved in-process and never serialized: the wire carries
 from __future__ import annotations
 
 import base64
+import importlib.util
 import json
 import logging
 import math
@@ -28,12 +29,13 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import closing
 from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Callable, Optional
 from urllib.parse import quote
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 
 log = logging.getLogger(__name__)
 router = APIRouter()
@@ -975,3 +977,47 @@ def get_usage(
 @router.get("/health")
 def health() -> dict[str, Any]:
     return {"ok": True, "plugin": "ai-usage-tracker", "cached_profiles": sorted(_cache)}
+
+
+@lru_cache(maxsize=1)
+def _llama_controller():
+    from hermes_constants import get_default_hermes_root
+
+    path = Path(__file__).with_name("llama_tray.py")
+    spec = importlib.util.spec_from_file_location("_ai_usage_llama_tray", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.LlamaTray(get_default_hermes_root())
+
+
+def _require_llama_access(request: Request) -> None:
+    hosted = getattr(request.state, "hosted_http_authenticated", None)
+    if hosted is True:
+        return
+    if hosted is False:
+        raise HTTPException(status_code=401, detail="Hermes sign-in required")
+    from hermes_cli.web_server import _require_token
+
+    _require_token(request)
+
+
+@router.get("/llama")
+def llama_status(request: Request) -> dict:
+    _require_llama_access(request)
+    return _llama_controller().status()
+
+
+@router.post("/llama/start")
+def llama_start(request: Request) -> dict:
+    _require_llama_access(request)
+    try:
+        return _llama_controller().start()
+    except OSError as exc:
+        log.warning("Could not start Llama tray: %s", exc)
+        raise HTTPException(status_code=503, detail="Could not start Llama tray") from exc
+
+
+@router.post("/llama/stop")
+def llama_stop(request: Request) -> dict:
+    _require_llama_access(request)
+    return _llama_controller().stop()
