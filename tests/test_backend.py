@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import agent.account_usage as core_account_usage
 
@@ -84,6 +85,39 @@ class QuotaParserTests(unittest.TestCase):
         result = api._probe_kimi()
         self.assertEqual(len(result["windows"]), 1)
         self.assertEqual(result["windows"][0]["label"], "Session (5h)")
+
+    def test_cursor_keeps_model_pools_separate_and_preserves_zero(self) -> None:
+        reset = "2026-12-06T09:58:58.000Z"
+        windows = api._cursor_quota_windows({
+            "billingCycleEnd": reset,
+            "individualUsage": {"plan": {
+                "autoPercentUsed": 0.93,
+                "apiPercentUsed": 0,
+                "totalPercentUsed": 82,
+                "breakdown": {"bonus": 40},
+            }},
+        })
+        self.assertEqual([row["label"] for row in windows], ["Cursor models", "Other models"])
+        self.assertEqual([row["used_percent"] for row in windows], [0.93, 0.0])
+        self.assertEqual([row["reset_at"] for row in windows], [reset, reset])
+        self.assertAlmostEqual(windows[0]["remaining_percent"], 99.07)
+
+    def test_cursor_uses_billing_cycle_only_without_model_pools(self) -> None:
+        windows = api._cursor_quota_windows({
+            "individualUsage": {"plan": {"enabled": False, "autoPercentUsed": 50}},
+            "teamUsage": {"plan": {"totalPercentUsed": 8, "used": 600, "limit": 800}},
+        })
+        self.assertEqual([(row["label"], row["used_percent"]) for row in windows], [("Billing cycle", 8.0)])
+        self.assertEqual(api._cursor_quota_windows({"individualUsage": {"plan": {"used": 600, "limit": 800}}}), [])
+
+    def test_cursor_refuses_to_use_another_accounts_limits(self) -> None:
+        with patch.object(api, "_runtime_key", return_value="mock-key"), \
+             patch.object(api, "_cursor_dashboard_cookie", return_value="mock-cookie"), \
+             patch.object(api, "_get_json", side_effect=[{"userId": 42}, {"id": 43}]) as fetch:
+            result = api._probe_cursor()
+        self.assertFalse(result["available"])
+        self.assertIn("different accounts", result["unavailable_reason"])
+        self.assertEqual(fetch.call_count, 2)
 
 
 if __name__ == "__main__":

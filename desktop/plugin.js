@@ -84,6 +84,7 @@ const EN = {
     weeklyTotal: 'Weekly total', weeklyCoding: 'Weekly coding', monthly: 'Monthly',
     monthlyTotal: 'Monthly total', monthlyCoding: 'Monthly coding', premiumRequests: 'Premium requests',
     chat: 'Chat', completions: 'Completions', toolQuota: 'Tool quota', apiKeyQuota: 'API key quota',
+    cursorModels: 'Cursor models', otherModels: 'Other models', billingCycle: 'Billing cycle',
     credits: 'Credits', limit: 'Limit', creditLimit: 'Credit Limit', fiveHours: '5h', weeklyLower: 'weekly', minutes: 'min'
   },
   details: {
@@ -108,6 +109,11 @@ const EN = {
     notInCatalog: 'Provider not in the Hermes catalog.',
     noCredentials: 'No credentials for this provider in this profile, or its quota probe failed.',
     noClaudeOAuth: 'No Claude Code OAuth credentials in this profile.',
+    cursorSignIn: 'Sign in to Cursor Desktop to read subscription limits.',
+    cursorPersonalKey: 'The Cursor SDK key has no personal Cursor account.',
+    cursorAccountMismatch: 'Cursor SDK and Cursor Desktop use different accounts.',
+    cursorRejected: 'Cursor rejected the SDK key or Desktop session.',
+    cursorUnavailable: 'Cursor subscription limits are unavailable.',
     noApiKey: (provider, variable) => `No ${provider} API key (${variable}) in this profile.`,
     rejected: (provider, error) => `${provider} rejected the API key (${error}).`,
     probeFailed: (provider, error) => `${provider} quota probe failed: ${error}`,
@@ -183,6 +189,7 @@ const RU = {
     weeklyTotal: 'Неделя, всего', weeklyCoding: 'Неделя, программирование', monthly: 'Месяц',
     monthlyTotal: 'Месяц, всего', monthlyCoding: 'Месяц, программирование', premiumRequests: 'Премиум-запросы',
     chat: 'Чат', completions: 'Автодополнение', toolQuota: 'Лимит инструментов', apiKeyQuota: 'Лимит API-ключа',
+    cursorModels: 'Модели Cursor', otherModels: 'Другие модели', billingCycle: 'Расчётный период',
     credits: 'Кредиты', limit: 'Лимит', creditLimit: 'Лимит кредитов', fiveHours: '5 ч', weeklyLower: 'неделя', minutes: 'мин'
   },
   details: {
@@ -207,6 +214,11 @@ const RU = {
     notInCatalog: 'Провайдер отсутствует в каталоге Hermes.',
     noCredentials: 'В этом профиле нет учётных данных или не удалось запросить лимиты.',
     noClaudeOAuth: 'В этом профиле нет OAuth-доступа Claude Code.',
+    cursorSignIn: 'Войди в Cursor Desktop, чтобы увидеть лимиты подписки.',
+    cursorPersonalKey: 'Ключ Cursor SDK не привязан к личному аккаунту Cursor.',
+    cursorAccountMismatch: 'В Cursor SDK и Cursor Desktop используются разные аккаунты.',
+    cursorRejected: 'Cursor отклонил ключ SDK или сессию Cursor Desktop.',
+    cursorUnavailable: 'Лимиты подписки Cursor недоступны.',
     noApiKey: (provider, variable) => `В этом профиле нет API-ключа ${provider} (${variable}).`,
     rejected: (provider, error) => `${provider} отклонил API-ключ (${error}).`,
     probeFailed: (provider, error) => `Не удалось запросить лимиты ${provider}: ${error}`,
@@ -292,6 +304,7 @@ const DE = withLocale(EN, {
     weeklyTotal: 'Wöchentlich gesamt', weeklyCoding: 'Wöchentlich Coding', monthly: 'Monatlich',
     monthlyTotal: 'Monatlich gesamt', monthlyCoding: 'Monatlich Coding', premiumRequests: 'Premium-Anfragen',
     chat: 'Chat', completions: 'Vervollständigungen', toolQuota: 'Tool-Kontingent', apiKeyQuota: 'API-Schlüssel-Kontingent',
+    cursorModels: 'Cursor-Modelle', otherModels: 'Andere Modelle', billingCycle: 'Abrechnungszeitraum',
     credits: 'Guthaben', limit: 'Limit', creditLimit: 'Guthabenlimit', fiveHours: '5 Std.', weeklyLower: 'wöchentlich', minutes: 'Min.'
   },
   details: {
@@ -316,6 +329,11 @@ const DE = withLocale(EN, {
     notInCatalog: 'Der Anbieter fehlt im Hermes-Katalog.',
     noCredentials: 'In diesem Profil fehlen Zugangsdaten oder die Kontingentabfrage ist fehlgeschlagen.',
     noClaudeOAuth: 'In diesem Profil ist kein Claude-Code-OAuth-Zugriff vorhanden.',
+    cursorSignIn: 'Melde dich in Cursor Desktop an, um die Abonnementlimits zu sehen.',
+    cursorPersonalKey: 'Der Cursor-SDK-Schlüssel gehört zu keinem persönlichen Cursor-Konto.',
+    cursorAccountMismatch: 'Cursor SDK und Cursor Desktop verwenden unterschiedliche Konten.',
+    cursorRejected: 'Cursor hat den SDK-Schlüssel oder die Desktop-Sitzung abgelehnt.',
+    cursorUnavailable: 'Die Cursor-Abonnementlimits sind nicht verfügbar.',
     noApiKey: (provider, variable) => `In diesem Profil fehlt der API-Schlüssel für ${provider} (${variable}).`,
     rejected: (provider, error) => `${provider} hat den API-Schlüssel abgelehnt (${error}).`,
     probeFailed: (provider, error) => `Kontingentabfrage für ${provider} fehlgeschlagen: ${error}`,
@@ -390,6 +408,7 @@ const ES = withLocale(EN, {
     weeklyTotal: 'Total semanal', weeklyCoding: 'Programación semanal', monthly: 'Mensual',
     monthlyTotal: 'Total mensual', monthlyCoding: 'Programación mensual', premiumRequests: 'Solicitudes premium',
     chat: 'Chat', completions: 'Completados', toolQuota: 'Cuota de herramientas', apiKeyQuota: 'Cuota de clave API',
+    cursorModels: 'Modelos de Cursor', otherModels: 'Otros modelos', billingCycle: 'Ciclo de facturación',
     credits: 'Créditos', limit: 'Límite', creditLimit: 'Límite de créditos', fiveHours: '5 h', weeklyLower: 'semanal', minutes: 'min'
   },
   details: {
@@ -414,6 +433,11 @@ const ES = withLocale(EN, {
     notInCatalog: 'El proveedor no está en el catálogo de Hermes.',
     noCredentials: 'No hay credenciales en este perfil o no se pudo consultar la cuota.',
     noClaudeOAuth: 'Este perfil no tiene acceso OAuth a Claude Code.',
+    cursorSignIn: 'Inicia sesión en Cursor Desktop para consultar los límites de la suscripción.',
+    cursorPersonalKey: 'La clave de Cursor SDK no está vinculada a una cuenta personal de Cursor.',
+    cursorAccountMismatch: 'Cursor SDK y Cursor Desktop utilizan cuentas diferentes.',
+    cursorRejected: 'Cursor rechazó la clave del SDK o la sesión de Cursor Desktop.',
+    cursorUnavailable: 'Los límites de la suscripción de Cursor no están disponibles.',
     noApiKey: (provider, variable) => `Este perfil no tiene una clave API de ${provider} (${variable}).`,
     rejected: (provider, error) => `${provider} rechazó la clave API (${error}).`,
     probeFailed: (provider, error) => `No se pudo consultar la cuota de ${provider}: ${error}`,
@@ -488,6 +512,7 @@ const FR = withLocale(EN, {
     weeklyTotal: 'Total hebdomadaire', weeklyCoding: 'Programmation hebdomadaire', monthly: 'Mensuel',
     monthlyTotal: 'Total mensuel', monthlyCoding: 'Programmation mensuelle', premiumRequests: 'Requêtes premium',
     chat: 'Chat', completions: 'Complétions', toolQuota: 'Quota d’outils', apiKeyQuota: 'Quota de clé API',
+    cursorModels: 'Modèles Cursor', otherModels: 'Autres modèles', billingCycle: 'Cycle de facturation',
     credits: 'Crédits', limit: 'Limite', creditLimit: 'Limite de crédits', fiveHours: '5 h', weeklyLower: 'hebdomadaire', minutes: 'min'
   },
   details: {
@@ -512,6 +537,11 @@ const FR = withLocale(EN, {
     notInCatalog: 'Le fournisseur est absent du catalogue Hermes.',
     noCredentials: 'Aucun identifiant dans ce profil, ou la récupération du quota a échoué.',
     noClaudeOAuth: 'Ce profil ne dispose pas d’un accès OAuth à Claude Code.',
+    cursorSignIn: 'Connectez-vous à Cursor Desktop pour consulter les limites de votre abonnement.',
+    cursorPersonalKey: 'La clé Cursor SDK n’est liée à aucun compte Cursor personnel.',
+    cursorAccountMismatch: 'Cursor SDK et Cursor Desktop utilisent des comptes différents.',
+    cursorRejected: 'Cursor a refusé la clé SDK ou la session Cursor Desktop.',
+    cursorUnavailable: 'Les limites de l’abonnement Cursor sont indisponibles.',
     noApiKey: (provider, variable) => `Aucune clé API ${provider} (${variable}) dans ce profil.`,
     rejected: (provider, error) => `${provider} a rejeté la clé API (${error}).`,
     probeFailed: (provider, error) => `Impossible de récupérer le quota de ${provider} : ${error}`,
@@ -586,6 +616,7 @@ const JA = withLocale(EN, {
     weeklyTotal: '週間合計', weeklyCoding: '週間コーディング', monthly: '月間',
     monthlyTotal: '月間合計', monthlyCoding: '月間コーディング', premiumRequests: 'プレミアムリクエスト',
     chat: 'チャット', completions: '補完', toolQuota: 'ツール枠', apiKeyQuota: 'APIキー枠',
+    cursorModels: 'Cursor モデル', otherModels: 'その他のモデル', billingCycle: '請求サイクル',
     credits: 'クレジット', limit: '上限', creditLimit: 'クレジット上限', fiveHours: '5時間', weeklyLower: '週間', minutes: '分'
   },
   details: {
@@ -610,6 +641,11 @@ const JA = withLocale(EN, {
     notInCatalog: 'このプロバイダーは Hermes カタログにありません。',
     noCredentials: 'このプロファイルに認証情報がないか、枠の取得に失敗しました。',
     noClaudeOAuth: 'このプロファイルには Claude Code の OAuth アクセスがありません。',
+    cursorSignIn: 'サブスクリプションの上限を確認するには Cursor Desktop にログインしてください。',
+    cursorPersonalKey: 'Cursor SDK キーが個人の Cursor アカウントに紐付いていません。',
+    cursorAccountMismatch: 'Cursor SDK と Cursor Desktop で異なるアカウントを使用しています。',
+    cursorRejected: 'Cursor が SDK キーまたは Desktop セッションを拒否しました。',
+    cursorUnavailable: 'Cursor のサブスクリプション上限を取得できません。',
     noApiKey: (provider, variable) => `このプロファイルには ${provider} の APIキー（${variable}）がありません。`,
     rejected: (provider, error) => `${provider} が APIキーを拒否しました（${error}）。`,
     probeFailed: (provider, error) => `${provider} の枠を取得できませんでした: ${error}`,
@@ -684,6 +720,7 @@ const ZH = withLocale(EN, {
     weeklyTotal: '每周总量', weeklyCoding: '每周编程', monthly: '每月',
     monthlyTotal: '每月总量', monthlyCoding: '每月编程', premiumRequests: '高级请求',
     chat: '聊天', completions: '补全', toolQuota: '工具配额', apiKeyQuota: 'API 密钥配额',
+    cursorModels: 'Cursor 模型', otherModels: '其他模型', billingCycle: '计费周期',
     credits: '积分', limit: '限制', creditLimit: '积分限制', fiveHours: '5 小时', weeklyLower: '每周', minutes: '分钟'
   },
   details: {
@@ -708,6 +745,11 @@ const ZH = withLocale(EN, {
     notInCatalog: 'Hermes 目录中没有此提供商。',
     noCredentials: '此配置文件没有凭据，或配额查询失败。',
     noClaudeOAuth: '此配置文件没有 Claude Code OAuth 访问权限。',
+    cursorSignIn: '请登录 Cursor Desktop 以查看订阅限额。',
+    cursorPersonalKey: 'Cursor SDK 密钥未关联个人 Cursor 账户。',
+    cursorAccountMismatch: 'Cursor SDK 和 Cursor Desktop 使用不同的账户。',
+    cursorRejected: 'Cursor 拒绝了 SDK 密钥或 Desktop 会话。',
+    cursorUnavailable: '无法获取 Cursor 订阅限额。',
     noApiKey: (provider, variable) => `此配置文件没有 ${provider} 的 API 密钥（${variable}）。`,
     rejected: (provider, error) => `${provider} 拒绝了 API 密钥（${error}）。`,
     probeFailed: (provider, error) => `无法查询 ${provider} 的配额：${error}`,
@@ -782,6 +824,7 @@ const ZH_HANT = withLocale(EN, {
     weeklyTotal: '每週總量', weeklyCoding: '每週程式設計', monthly: '每月',
     monthlyTotal: '每月總量', monthlyCoding: '每月程式設計', premiumRequests: '進階請求',
     chat: '聊天', completions: '自動完成', toolQuota: '工具配額', apiKeyQuota: 'API 金鑰配額',
+    cursorModels: 'Cursor 模型', otherModels: '其他模型', billingCycle: '計費週期',
     credits: '點數', limit: '限制', creditLimit: '點數限制', fiveHours: '5 小時', weeklyLower: '每週', minutes: '分鐘'
   },
   details: {
@@ -806,6 +849,11 @@ const ZH_HANT = withLocale(EN, {
     notInCatalog: 'Hermes 目錄中沒有此供應商。',
     noCredentials: '此設定檔沒有憑證，或配額查詢失敗。',
     noClaudeOAuth: '此設定檔沒有 Claude Code OAuth 存取權限。',
+    cursorSignIn: '請登入 Cursor Desktop 以查看訂閱限額。',
+    cursorPersonalKey: 'Cursor SDK 金鑰未連結個人 Cursor 帳戶。',
+    cursorAccountMismatch: 'Cursor SDK 和 Cursor Desktop 使用不同的帳戶。',
+    cursorRejected: 'Cursor 拒絕了 SDK 金鑰或 Desktop 工作階段。',
+    cursorUnavailable: '無法取得 Cursor 訂閱限額。',
     noApiKey: (provider, variable) => `此設定檔沒有 ${provider} 的 API 金鑰（${variable}）。`,
     rejected: (provider, error) => `${provider} 拒絕了 API 金鑰（${error}）。`,
     probeFailed: (provider, error) => `無法查詢 ${provider} 的配額：${error}`,
@@ -880,6 +928,7 @@ const AR = withLocale(EN, {
     weeklyTotal: 'الإجمالي الأسبوعي', weeklyCoding: 'البرمجة الأسبوعية', monthly: 'شهري',
     monthlyTotal: 'الإجمالي الشهري', monthlyCoding: 'البرمجة الشهرية', premiumRequests: 'طلبات مميزة',
     chat: 'دردشة', completions: 'إكمال', toolQuota: 'حصة الأدوات', apiKeyQuota: 'حصة مفتاح API',
+    cursorModels: 'نماذج Cursor', otherModels: 'النماذج الأخرى', billingCycle: 'دورة الفوترة',
     credits: 'أرصدة', limit: 'الحد', creditLimit: 'حد الأرصدة', fiveHours: '5 ساعات', weeklyLower: 'أسبوعي', minutes: 'دقيقة'
   },
   details: {
@@ -904,6 +953,11 @@ const AR = withLocale(EN, {
     notInCatalog: 'هذا المزود غير موجود في كتالوج Hermes.',
     noCredentials: 'لا توجد بيانات اعتماد في هذا الملف، أو تعذر الاستعلام عن الحصة.',
     noClaudeOAuth: 'لا يتوفر وصول Claude Code عبر OAuth في هذا الملف.',
+    cursorSignIn: 'سجّل الدخول إلى Cursor Desktop لعرض حدود الاشتراك.',
+    cursorPersonalKey: 'مفتاح Cursor SDK غير مرتبط بحساب Cursor شخصي.',
+    cursorAccountMismatch: 'يستخدم Cursor SDK وCursor Desktop حسابين مختلفين.',
+    cursorRejected: 'رفض Cursor مفتاح SDK أو جلسة Desktop.',
+    cursorUnavailable: 'حدود اشتراك Cursor غير متوفرة.',
     noApiKey: (provider, variable) => `لا يوجد مفتاح API لـ ${provider} (${variable}) في هذا الملف.`,
     rejected: (provider, error) => `رفض ${provider} مفتاح API (${error}).`,
     probeFailed: (provider, error) => `تعذر الاستعلام عن حصة ${provider}: ${error}`,
@@ -953,7 +1007,8 @@ const WINDOW_KEYS = {
   'Weekly total': 'weeklyTotal', 'Weekly coding': 'weeklyCoding', Monthly: 'monthly',
   'Monthly total': 'monthlyTotal', 'Monthly coding': 'monthlyCoding', 'Premium requests': 'premiumRequests',
   Chat: 'chat', Completions: 'completions', 'Tool quota': 'toolQuota', 'API key quota': 'apiKeyQuota',
-  Credits: 'credits', Limit: 'limit', 'Credit Limit': 'creditLimit'
+  Credits: 'credits', Limit: 'limit', 'Credit Limit': 'creditLimit',
+  'Cursor models': 'cursorModels', 'Other models': 'otherModels', 'Billing cycle': 'billingCycle'
 }
 
 const REASON_KEYS = {
@@ -962,6 +1017,11 @@ const REASON_KEYS = {
   'No credentials for this provider in this profile.': 'noCredentials',
   'No credentials for this provider in this profile, or its quota probe failed.': 'noCredentials',
   'No Claude Code OAuth credentials in this profile.': 'noClaudeOAuth',
+  'Sign in to Cursor Desktop to read subscription limits.': 'cursorSignIn',
+  'The Cursor SDK key has no personal Cursor account.': 'cursorPersonalKey',
+  'Cursor SDK and Cursor Desktop use different accounts.': 'cursorAccountMismatch',
+  'Cursor rejected the SDK key or Desktop session.': 'cursorRejected',
+  'Cursor subscription limits are unavailable.': 'cursorUnavailable',
   'Kimi returned no parseable usage windows.': 'kimiParse',
   'Z.AI returned no parseable quota limits.': 'zaiParse',
   'OpenCode Go returned no usage windows.': 'opencodeParse',

@@ -35,6 +35,7 @@ the page, chip and sidebar without reinstalling the plugin.
 | `nous` | portal account (subscription credits + renewal) |
 | `openrouter` | `api/v1/credits` + `/key` (balance / key limit) |
 | `copilot` | `api.github.com/copilot_internal/user` |
+| `cursor` (Cursor SDK) | `cursor.com/api/usage-summary` (Cursor models and other models) |
 | `opencode-go` | `opencode.ai/zen/go/v1/usage` (rolling / weekly / monthly) |
 | `opencode-zen` | credits endpoint (pay-as-you-go) |
 | `zai` | `api.z.ai/api/monitor/usage/quota/limit` |
@@ -43,8 +44,13 @@ the page, chip and sidebar without reinstalling the plugin.
 | `deepseek` | `api.deepseek.com/user/balance` |
 
 Providers with no quota API are listed with an explicit reason instead of a fabricated
-bar. Absence-path providers (Grok/SuperGrok, Gemini Code Assist OAuth, Cursor, Kiro) need
+bar. Absence-path providers (Grok/SuperGrok, Gemini Code Assist OAuth, Kiro) need
 browser cookies and are deliberately not attempted.
+
+Cursor requires a personal SDK key in the selected Hermes profile and a local Cursor
+Desktop sign-in for the same account. The plugin reads the desktop session in memory
+and verifies the account IDs before requesting the dashboard's subscription limits.
+It supports Windows-protected and plain Cursor Desktop session storage.
 
 ## Install
 
@@ -52,14 +58,14 @@ browser cookies and are deliberately not attempted.
 # from the curated catalog (once merged):
 hermes plugins install ai-usage-tracker --enable
 
-# install this multilingual fork directly:
-hermes plugins install anatolijlaptev1991-ctrl/hermes-ai-usage-tracker --enable
+# install this fork from GitHub:
+hermes plugins install plesnev-hash/hermes-ai-usage-tracker --enable
 ```
 
 Or ship an install link in any README/site:
 
 ```html
-<a href="hermes://plugin/install?repo=anatolijlaptev1991-ctrl/hermes-ai-usage-tracker&enable=1">Install in Hermes</a>
+<a href="hermes://plugin/install?repo=plesnev-hash/hermes-ai-usage-tracker&enable=1">Install in Hermes</a>
 ```
 
 Then enable it **for each profile** you want it in — desktop backends are profile-scoped,
@@ -129,7 +135,7 @@ hermes plugins validate .
 hermes plugins doctor ai-usage-tracker
 ```
 
-The i18n test asserts the exact Hermes locale set, 110 keys per locale, no accidentally
+The i18n test asserts the exact Hermes locale set, matching keys per locale, no accidentally
 untranslated English leaves, working interpolation, the Russian regression cases and the
 canonical plugin id.
 
@@ -138,4 +144,5 @@ canonical plugin id.
 - Read-only. Nothing is written except the plugin's own cache and the two UI prefs.
 - Credentials are resolved in-process and **never serialized**; the wire carries
   `configured: true/false` and a source label only.
-- The only outbound calls are the provider quota endpoints above.
+- Outbound calls go to provider quota endpoints. Cursor also uses `api.cursor.com/v1/me`
+  and `cursor.com/api/auth/me` to verify that the SDK key and Desktop session belong to the same account.

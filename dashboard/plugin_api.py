@@ -16,9 +16,13 @@ own. Secrets are resolved in-process and never serialized: the wire carries
 
 from __future__ import annotations
 
+import base64
+import json
 import logging
+import math
 import os
 import sqlite3
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -26,6 +30,7 @@ from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Optional
+from urllib.parse import quote
 
 import httpx
 from fastapi import APIRouter, HTTPException, Query
@@ -48,6 +53,7 @@ _FALLBACK_LABELS = {
     "anthropic": "Anthropic",
     "openai-codex": "ChatGPT or Codex Subscription",
     "copilot": "GitHub Copilot",
+    "cursor": "Cursor SDK",
     "gemini": "Google AI Studio",
     "zai": "Z.AI / GLM",
     "minimax": "MiniMax",
@@ -62,7 +68,7 @@ _FALLBACK_LABELS = {
 
 # Providers whose subscription quota can be read live.
 _QUOTA_CAPABLE = frozenset({
-    "anthropic", "openai-codex", "openrouter", "nous", "copilot",
+    "anthropic", "openai-codex", "openrouter", "nous", "copilot", "cursor",
     "opencode-go", "opencode-zen", "zai", "kimi-coding", "minimax", "deepseek",
 })
 
@@ -70,6 +76,7 @@ _ENV_HINTS = {
     "openrouter": "OPENROUTER_API_KEY",
     "anthropic": "ANTHROPIC_API_KEY",
     "copilot": "COPILOT_GITHUB_TOKEN",
+    "cursor": "CURSOR_API_KEY",
     "gemini": "GEMINI_API_KEY",
     "vertex": "GOOGLE_APPLICATION_CREDENTIALS",
     "xai": "XAI_API_KEY",
@@ -191,8 +198,9 @@ def _provider_labels() -> dict[str, str]:
     try:
         from hermes_cli.models_catalog_static import _PROVIDER_LABELS  # type: ignore
 
-        labels = {str(k): str(v) for k, v in dict(_PROVIDER_LABELS).items()}
-        return labels or dict(_FALLBACK_LABELS)
+        labels = {str(k): str(v) for k, v in dict(_PROVIDER_LABELS).items()} or dict(_FALLBACK_LABELS)
+        labels["cursor"] = _FALLBACK_LABELS["cursor"]
+        return labels
     except Exception:  # noqa: BLE001
         log.debug("provider catalog unavailable, using fallback labels", exc_info=True)
         return dict(_FALLBACK_LABELS)
@@ -204,7 +212,8 @@ def _normalize_provider(raw: str) -> str:
         return "unattributed"
     if value.startswith("custom:"):
         return "custom"
-    aliases = {"openai": "openai-api", "gemini-code-assist": "gemini", "glm": "zai", "moonshot": "kimi-coding"}
+    aliases = {"openai": "openai-api", "gemini-code-assist": "gemini", "glm": "zai", "moonshot": "kimi-coding",
+               "cursor-sdk": "cursor", "cursor-subscription": "cursor"}
     return aliases.get(value, value)
 
 
@@ -289,9 +298,9 @@ def _runtime_key(provider: str) -> Optional[str]:
         return None
 
 
-def _get_json(url: str, headers: dict[str, str]) -> dict[str, Any]:
+def _get_json(url: str, headers: dict[str, str], *, auth: Optional[tuple[str, str]] = None) -> dict[str, Any]:
     with httpx.Client(timeout=_PROBE_TIMEOUT) as client:
-        response = client.get(url, headers=headers)
+        response = client.get(url, headers=headers, auth=auth)
         if response.status_code in (401, 403):
             raise _ProbeAuthError(f"HTTP {response.status_code} — credential rejected or expired")
         response.raise_for_status()
@@ -389,6 +398,115 @@ def _probe_nous() -> dict[str, Any]:
         return _unavailable("Not signed in to Nous Portal, or the portal returned no subscription data.",
                             source="portal-account")
     return _serialize_snapshot(snapshot)
+
+
+_CURSOR_SOURCE = "cursor_dashboard"
+_CURSOR_SIGN_IN = "Sign in to Cursor Desktop to read subscription limits."
+
+
+def _cursor_desktop_token() -> str:
+    home = Path.home()
+    if sys.platform == "win32":
+        config = Path(os.environ.get("APPDATA") or home / "AppData" / "Roaming")
+    elif sys.platform == "darwin":
+        config = home / "Library" / "Application Support"
+    else:
+        config = Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config")
+    root = config / "Cursor"
+    database = root / "User" / "globalStorage" / "state.vscdb"
+    with closing(sqlite3.connect(database.as_uri() + "?mode=ro", uri=True, timeout=2.0)) as conn:
+        row = conn.execute("SELECT value FROM ItemTable WHERE key = ?", ("cursorAuth/accessToken",)).fetchone()
+    if not row or not row[0]:
+        return ""
+    token = row[0].decode("utf-8") if isinstance(row[0], bytes) else row[0]
+    if token.startswith('"'):
+        token = json.loads(token)
+    prefix = "cursor-safe-storage:v1:"
+    if not token.startswith(prefix):
+        return token
+    if sys.platform != "win32":
+        return ""
+
+    import win32crypt
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+    encrypted = base64.b64decode(token.removeprefix(prefix), validate=True)
+    if encrypted[:3] in (b"v10", b"v11") and len(encrypted) >= 31:
+        state = json.loads((root / "Local State").read_text(encoding="utf-8"))
+        wrapped_key = base64.b64decode(state["os_crypt"]["encrypted_key"], validate=True)
+        if not wrapped_key.startswith(b"DPAPI"):
+            return ""
+        key = win32crypt.CryptUnprotectData(wrapped_key[5:], None, None, None, 0)[1]
+        return AESGCM(key).decrypt(encrypted[3:15], encrypted[15:], None).decode("utf-8")
+    if encrypted[:1] == b"v" and encrypted[1:3].isdigit():
+        return ""
+    return win32crypt.CryptUnprotectData(encrypted, None, None, None, 0)[1].decode("utf-8")
+
+
+def _cursor_dashboard_cookie() -> str:
+    try:
+        token = _cursor_desktop_token()
+        encoded = token.split(".")[1]
+        claims = json.loads(base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4)))
+        subject = claims["sub"].split("|")[-1]
+        if subject:
+            return "WorkosCursorSessionToken=" + quote(f"{subject}::{token}", safe="")
+    except Exception as exc:  # noqa: BLE001 - missing DB, unsupported storage or invalid token
+        log.debug("Cursor Desktop session unavailable (%s)", type(exc).__name__)
+    return ""
+
+
+def _cursor_quota_windows(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    for scope_name in ("individualUsage", "teamUsage"):
+        scope = payload.get(scope_name)
+        plan = scope.get("plan") if isinstance(scope, dict) else None
+        if not isinstance(plan, dict) or plan.get("enabled") is False:
+            continue
+        reset_at = scope.get("billingCycleEnd") or payload.get("billingCycleEnd")
+        windows = []
+        for field, label in (("autoPercentUsed", "Cursor models"), ("apiPercentUsed", "Other models"),
+                             ("totalPercentUsed", "Billing cycle")):
+            if field == "totalPercentUsed" and windows:
+                break
+            percent = plan.get(field)
+            if type(percent) in (int, float) and math.isfinite(percent):
+                windows.append(_window(label, percent, reset_at))
+        if windows:
+            return windows
+    return []
+
+
+def _probe_cursor() -> dict[str, Any]:
+    key = _runtime_key("cursor")
+    if not key:
+        return _unavailable("No credentials for this provider in this profile.", source=_CURSOR_SOURCE)
+    cookie = _cursor_dashboard_cookie()
+    if not cookie:
+        return _unavailable(_CURSOR_SIGN_IN, source=_CURSOR_SOURCE)
+    headers = {"Cookie": cookie, "Accept": "application/json", "Origin": "https://cursor.com",
+               "Referer": "https://cursor.com/dashboard"}
+    try:
+        sdk_user = _get_json("https://api.cursor.com/v1/me", {"Accept": "application/json"}, auth=(key, ""))
+        sdk_id = sdk_user.get("userId") if isinstance(sdk_user, dict) else None
+        if sdk_id is None:
+            return _unavailable("The Cursor SDK key has no personal Cursor account.", source=_CURSOR_SOURCE)
+        desktop_user = _get_json("https://cursor.com/api/auth/me", headers)
+        if not isinstance(desktop_user, dict) or str(sdk_id) != str(desktop_user.get("id")):
+            return _unavailable("Cursor SDK and Cursor Desktop use different accounts.", source=_CURSOR_SOURCE)
+        payload = _get_json("https://cursor.com/api/usage-summary", headers)
+    except _ProbeAuthError:
+        return _unavailable("Cursor rejected the SDK key or Desktop session.", source=_CURSOR_SOURCE)
+    except (httpx.HTTPError, ValueError, _ProbeUnsupported) as exc:
+        log.debug("Cursor subscription request failed (%s)", type(exc).__name__)
+        return _unavailable("Cursor subscription limits are unavailable.", source=_CURSOR_SOURCE)
+
+    windows = _cursor_quota_windows(payload) if isinstance(payload, dict) else []
+    if not windows:
+        return _unavailable("Cursor subscription limits are unavailable.", source=_CURSOR_SOURCE)
+    plan = payload.get("membershipType")
+    return {"available": True, "source": _CURSOR_SOURCE, "title": "Account limits", "plan": plan if isinstance(plan, str) else None,
+            "windows": windows, "details": [], "unavailable_reason": None,
+            "fetched_at": datetime.now(timezone.utc).isoformat()}
 
 
 def _probe_copilot() -> dict[str, Any]:
@@ -724,6 +842,7 @@ _PROBES: dict[str, Callable[[], dict[str, Any]]] = {
     "openrouter": lambda: _probe_standard("openrouter"),
     "nous": _probe_nous,
     "copilot": _probe_copilot,
+    "cursor": _probe_cursor,
     "opencode-go": _probe_opencode_go,
     "opencode-zen": _probe_opencode_zen,
     "zai": _probe_zai,

@@ -77,6 +77,8 @@ assert(untranslated.length === 0, `Untranslated English leaves: ${untranslated.j
 
 const ru = translator(LOCALES.ru)
 assert(windowLabel('Monthly coding', ru) === 'Месяц, программирование', 'RU Kimi window failed')
+assert(windowLabel('Cursor models', ru) === 'Модели Cursor', 'RU Cursor pool label failed')
+assert(windowLabel('Other models', ru) === 'Другие модели', 'RU other Cursor pool label failed')
 assert(detailLabel('USD 3.63 balance', ru) === 'Баланс: 3.63 USD', 'RU DeepSeek balance failed')
 assert(detailLabel('11802 of 12000 left', ru) === 'Осталось 11802 из 12000', 'RU remaining detail failed')
 assert(reasonLabel('No public subscription-quota API for this provider.', ru).startsWith('У этого провайдера'), 'RU reason failed')
