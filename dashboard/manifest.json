@@ -1,8 +1,8 @@
 {
   "name": "ai-usage-tracker",
   "label": "AI Usage Tracker",
-  "description": "Live subscription-quota windows for every AI provider Hermes can route to, per profile",
+  "description": "Live subscription quotas per Hermes profile and Windows controls for a local llama.cpp server",
   "icon": "Graph",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "api": "plugin_api.py"
 }

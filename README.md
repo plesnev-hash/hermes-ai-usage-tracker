@@ -54,19 +54,8 @@ It supports Windows-protected and plain Cursor Desktop session storage.
 
 ## Install
 
-```bash
-# from the curated catalog (once merged):
-hermes plugins install ai-usage-tracker --enable
-
-# install this fork from GitHub:
-hermes plugins install plesnev-hash/hermes-ai-usage-tracker --enable
-```
-
-Or ship an install link in any README/site:
-
-```html
-<a href="hermes://plugin/install?repo=plesnev-hash/hermes-ai-usage-tracker&enable=1">Install in Hermes</a>
-```
+Use the install command in the [v3.0.0 release notes](https://github.com/plesnev-hash/hermes-ai-usage-tracker/releases/tag/v3.0.0).
+The command pins this version to its release commit.
 
 Then enable it **for each profile** you want it in — desktop backends are profile-scoped,
 and a plugin enabled only in the default profile 404s on every other:
