@@ -196,7 +196,11 @@ class LlamaTray:
 
         message = win32con.WM_APP + 1
         taskbar_created = win32gui.RegisterWindowMessage("TaskbarCreated")
-        icon = win32gui.LoadIcon(0, win32con.IDI_APPLICATION)
+        icon = win32gui.LoadImage(
+            0, str(Path(__file__).with_name("ail.ico")), win32con.IMAGE_ICON,
+            win32api.GetSystemMetrics(win32con.SM_CXSMICON), win32api.GetSystemMetrics(win32con.SM_CYSMICON),
+            win32con.LR_LOADFROMFILE,
+        )
         flags = win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP
         exit_label = "Остановить Llama-сервер и выйти" if config.get("language") == "ru" else "Stop llama-server and exit"
 
@@ -268,7 +272,10 @@ class LlamaTray:
                 try:
                     win32gui.Shell_NotifyIcon(win32gui.NIM_DELETE, (hwnd, 0))
                 finally:
-                    win32gui.DestroyWindow(hwnd)
+                    try:
+                        win32gui.DestroyWindow(hwnd)
+                    finally:
+                        win32gui.DestroyIcon(icon)
 
 
 if __name__ == "__main__":

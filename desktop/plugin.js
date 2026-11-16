@@ -1665,7 +1665,11 @@ function LlamaControl() {
         ]
       }),
       available ? jsx(Button, {
-        variant: 'secondary', onClick: toggle, disabled: pending || Boolean(error), children: t(`llama.${label}`)
+        variant: running ? 'default' : 'secondary',
+        style: running ? { backgroundColor: 'var(--ui-accent)' } : undefined,
+        onClick: toggle,
+        disabled: pending || Boolean(error),
+        children: t(`llama.${label}`)
       }) : null
     ]
   })
